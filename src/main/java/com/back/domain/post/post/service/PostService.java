@@ -47,4 +47,8 @@ public class PostService {
     public void modifyComment(PostComment postComment, String content) {
         postComment.modify(content);
     }
+
+    public void delete(Post post) {
+        postRepository.delete(post);
+    }
 }
