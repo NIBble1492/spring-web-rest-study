@@ -1,6 +1,5 @@
 package com.back.domain.post.postComment.controller;
 
-import com.back.domain.post.post.controller.ApiV1PostController;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.entity.PostComment;
@@ -143,5 +142,37 @@ class ApiV1PostCommentControllerTest {
         assertThat(postComment.getContent()).isEqualTo("내용 new");
     }
 
+    @Test
+    @DisplayName("댓글 작성")
+    void t5() throws Exception {
+        int postId = 1;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts/%d/comments".formatted(postId))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        Post post = postService.findById(postId).get();
+
+        PostComment postComment = post.getComments().getLast();
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.resultCode").value("201-1"))
+                .andExpect(jsonPath("$.msg").value("%d번 댓글이 작성되었습니다.".formatted(postComment.getId())))
+                .andExpect(jsonPath("$.data.id").value(postComment.getId()))
+                .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(postComment.getCreateDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(postComment.getModifyDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.content").value("내용"));
+    }
 
 }

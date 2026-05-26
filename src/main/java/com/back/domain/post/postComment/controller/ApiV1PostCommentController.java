@@ -71,6 +71,32 @@ public class ApiV1PostCommentController {
         );
     }
 
+    record PostCommentWriteReqBody(
+            @NotBlank
+            @Size(min = 2, max = 100)
+            String content
+    ) {
+    }
+
+    @PostMapping
+    @Transactional
+    public RsData<PostCommentDto> write(
+            @PathVariable int postId,
+            @Valid @RequestBody PostCommentWriteReqBody reqBody
+    ) {
+        Post post = postService.findById(postId).get();
+        PostComment postComment = postService.writeComment(post, reqBody.content);
+
+        // 트랜잭션 끝난 후 수행되어야 하는 더티체킹 및 여러가지 작업들을 지금 당장 수행해라.
+        postService.flush();
+
+        return new RsData<>(
+                "201-1",
+                "%d번 댓글이 작성되었습니다.".formatted(postComment.getId()),
+                new PostCommentDto(postComment)
+        );
+    }
+
 
     @Transactional
     @DeleteMapping("/{id}")
