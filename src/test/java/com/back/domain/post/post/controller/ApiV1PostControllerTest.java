@@ -2,6 +2,7 @@ package com.back.domain.post.post.controller;
 
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class ApiV1PostControllerTest {
 
     // 글 작성 테스트
     @Test
-    @DisplayName("글 쓰기")
+    @DisplayName("글 작성")
     void t1() throws Exception {
         // 글 작성 요청을 보냅니다.
         ResultActions resultActions = mvc
@@ -56,7 +57,11 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("201-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 글이 작성되었습니다.".formatted(post.getId())))
                 .andExpect(jsonPath("$.data.totalCount").value(totalCount))
-                .andExpect(jsonPath("$.data.post.id").value(post.getId()));
+                .andExpect(jsonPath("$.data.post.id").value(post.getId()))
+                .andExpect(jsonPath("$.data.post.createDate").value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.post.modifyDate").value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.post.title").value("제목"))
+                .andExpect(jsonPath("$.data.post.content").value("내용"));
     }
 
     // 글 수정 테스트
