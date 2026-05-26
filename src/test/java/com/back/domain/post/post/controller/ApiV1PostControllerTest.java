@@ -13,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -67,20 +68,32 @@ public class ApiV1PostControllerTest {
     @Test
     @DisplayName("글 수정")
     void t2() throws Exception {
+        int id = 1;
+
         // 글 수정 요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
-                        put("/api/v1/posts/1")
+                        put("/api/v1/posts/" + id)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
-                                            "title": "제목 1 수정",
-                                            "content": "내용 1 수정"
+                                            "title": "제목 new",
+                                            "content": "내용 new"
                                         }
                                         """)
                 ).andDo(print()); // 응답결과를 출력합니다.
 
         resultActions
-                .andExpect(status().isOk()); // 200 Ok 상태코드 검증
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isOk()) // 200 Ok 상태코드 검증
+                .andExpect(jsonPath("$.resultCode").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("%d번 글이 수정되었습니다.".formatted(id)));
+
+//        Post post = postService.findById(id).get();
+//
+//        assertThat(post.getTitle()).isEqualTo("제목 new");
+//        assertThat(post.getContent()).isEqualTo("내용 new");
     }
+
 }
