@@ -117,6 +117,32 @@ public class ApiV1PostControllerTest {
                         """.stripIndent().trim()));
     }
 
+    @Test
+    @DisplayName("글 쓰기, with wrong json syntax")
+    void t9() throws Exception {
+
+        String wrongJsonBody = """
+                {
+                    "title": 제목",
+                    content": "내용"
+                """;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(wrongJsonBody)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.resultCode").value("400-1"))
+                .andExpect(jsonPath("$.msg").value("요청 본문이 올바르지 않습니다.".stripIndent().trim()));
+    }
+
     // 글 수정 테스트
     @Test
     @DisplayName("글 수정")
