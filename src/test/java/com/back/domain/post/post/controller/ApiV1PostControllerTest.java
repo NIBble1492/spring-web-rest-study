@@ -139,6 +139,23 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
+    @DisplayName("글 단건조회, 404")
+    void t6() throws Exception {
+        int id = Integer.MAX_VALUE;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/posts/" + id)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("getItem"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     @DisplayName("글 다건조회")
     void t5() throws Exception {
         ResultActions resultActions = mvc
