@@ -44,6 +44,7 @@ public class ApiV1PostController {
 
         return new PostDto(post);
     }
+
     public record PostWriteReqBody (
             @NotBlank
             @Size(min = 2, max = 100)
@@ -53,7 +54,6 @@ public class ApiV1PostController {
             String content
     ) {
     }
-
     @PostMapping
     @Transactional
     @Operation(summary = "작성")
