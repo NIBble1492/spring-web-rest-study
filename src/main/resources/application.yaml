@@ -18,6 +18,8 @@ spring:
         format_sql: true
         highlight_sql: true
         use_sql_comments: true
+springdoc:
+  default-produces-media-type: application/json;charset=UTF-8
 #  jackson:
 #    serialization:
 #      fail-on-empty-beans: false # 예전에는 true가 기본값이었지만, 지금은 false가 기본값입니다.
