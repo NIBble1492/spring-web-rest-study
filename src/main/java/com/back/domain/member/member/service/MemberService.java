@@ -14,6 +14,10 @@ import java.util.Optional;
 public class MemberService {
     private final MemberRepository memberRepository;
 
+    public long count() {
+        return memberRepository.count();
+    }
+
     public Optional<Member> findLatest() {
         return memberRepository.findFirstByOrderByIdDesc();
     }

@@ -84,9 +84,9 @@ class ApiV1MemberControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
-                                            "username": "user12",
+                                            "username": "user2",
                                             "password": "12345678",
-                                            "name": "유저12"
+                                            "name": "유저2"
                                         }
                                         """)
                 )
@@ -97,7 +97,7 @@ class ApiV1MemberControllerTest {
                 .andExpect(handler().methodName("join"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.resultCode").value("409-1"))
-                .andExpect(jsonPath("$.msg").value("user12(은)는 이미 사용중인 username 입니다."));
+                .andExpect(jsonPath("$.msg").value("user2(은)는 이미 사용중인 username 입니다."));
     }
 
     @Test
