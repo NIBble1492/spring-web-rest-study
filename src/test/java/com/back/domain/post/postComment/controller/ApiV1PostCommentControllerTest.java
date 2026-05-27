@@ -149,7 +149,7 @@ class ApiV1PostCommentControllerTest {
 
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts/%d/comments".formatted(postId))
+                        post("/api/v1/posts/%d/comments?actorId=1".formatted(postId))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {

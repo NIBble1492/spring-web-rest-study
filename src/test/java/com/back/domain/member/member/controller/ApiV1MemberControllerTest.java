@@ -101,14 +101,14 @@ class ApiV1MemberControllerTest {
     }
 
     @Test
-    @DisplayName("회원 정보 조회")
+    @DisplayName("회원 조회")
     void t3() throws Exception {
         Member tempMember = memberService.join("testuser", "12345678", "테스트유저");
         int id = tempMember.getId();
 
         ResultActions resultActions = mvc
                 .perform(
-                        get("/api/v1/members/me/" + id)
+                        get("/api/v1/members/me?actorId=" + id)
                 )
                 .andDo(print());
 
@@ -123,5 +123,24 @@ class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.modifyDate").value(Matchers.startsWith(member.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.username").value(member.getUsername()))
                 .andExpect(jsonPath("$.name").value(member.getName()));
+    }
+
+    @Test
+    @DisplayName("회원 조회 시 회원 번호 없을 경우")
+    void t4() throws Exception {
+
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/members/me")
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("getProfile"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+
     }
 }

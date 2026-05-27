@@ -36,7 +36,7 @@ public class ApiV1PostControllerTest {
         // 글 작성 요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?actorId=1")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -67,7 +67,7 @@ public class ApiV1PostControllerTest {
     void t7() throws Exception {
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?actorId=1")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -94,7 +94,7 @@ public class ApiV1PostControllerTest {
     void t8() throws Exception {
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?actorId=1")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -128,7 +128,7 @@ public class ApiV1PostControllerTest {
 
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?actorId=1")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(wrongJsonBody)
                 )

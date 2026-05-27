@@ -5,6 +5,7 @@ import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
+import com.back.global.globalExceptionHandler.UnauthenticatedException;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,14 +50,16 @@ public class ApiV1MemberController {
     }
 
     @GetMapping("/me")
-    @Operation(summary = "회원 정보 조회")
+    @Operation(summary = "회원 조회")
     public MemberDto getProfile(
-            @RequestParam int actorId
+            @RequestParam(defaultValue = "0") int actorId
 
     ) {
-        Member member = memberService.findById(actorId).get();
+        Member loginMember = memberService.findById(actorId).orElseThrow(
+                UnauthenticatedException::new
+        );
 
-        return new MemberDto(member);
+        return new MemberDto(loginMember);
     }
 
 }
