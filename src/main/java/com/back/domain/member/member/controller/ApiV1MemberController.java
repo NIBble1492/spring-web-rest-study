@@ -31,7 +31,7 @@ public class ApiV1MemberController {
             String name
     ) {
     }
-    @PostMapping
+    @PostMapping("/join")
     @Transactional
     @Operation(summary = "회원가입")
     public RsData<Void> join(
