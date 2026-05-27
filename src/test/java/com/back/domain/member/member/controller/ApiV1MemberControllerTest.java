@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -97,5 +98,30 @@ class ApiV1MemberControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.resultCode").value("409-1"))
                 .andExpect(jsonPath("$.msg").value("user12(은)는 이미 사용중인 username 입니다."));
+    }
+
+    @Test
+    @DisplayName("회원 정보 조회")
+    void t3() throws Exception {
+        Member tempMember = memberService.join("testuser", "12345678", "테스트유저");
+        int id = tempMember.getId();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/members/me/" + id)
+                )
+                .andDo(print());
+
+        Member member = memberService.findById(id).get();
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("getProfile"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(member.getId()))
+                .andExpect(jsonPath("$.createDate").value(Matchers.startsWith(member.getCreateDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.modifyDate").value(Matchers.startsWith(member.getModifyDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.username").value(member.getUsername()))
+                .andExpect(jsonPath("$.name").value(member.getName()));
     }
 }

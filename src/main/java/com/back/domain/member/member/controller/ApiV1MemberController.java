@@ -49,7 +49,7 @@ public class ApiV1MemberController {
     }
 
     @GetMapping("/me/{actorId}")
-    @Operation(summary = "단건 조회")
+    @Operation(summary = "회원 정보 조회")
     public MemberDto getProfile(
             @PathVariable int actorId
     ) {
