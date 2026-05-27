@@ -1,7 +1,10 @@
 package com.back.domain.member.member.controller;
 
+import com.back.domain.member.member.dto.MemberDto;
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
+import com.back.domain.post.post.dto.PostDto;
+import com.back.domain.post.post.entity.Post;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,5 +48,14 @@ public class ApiV1MemberController {
         );
     }
 
+    @GetMapping("/me/{actorId}")
+    @Operation(summary = "단건 조회")
+    public MemberDto getProfile(
+            @PathVariable int actorId
+    ) {
+        Member member = memberService.findById(actorId).get();
+
+        return new MemberDto(member);
+    }
 
 }

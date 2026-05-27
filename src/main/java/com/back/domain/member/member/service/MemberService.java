@@ -18,6 +18,10 @@ public class MemberService {
         return memberRepository.findFirstByOrderByIdDesc();
     }
 
+    public Optional<Member> findById(int id) {
+        return memberRepository.findById(id);
+    }
+
     public Member join(String username, String password, String name) {
         memberRepository.findByUsername(username)
                 .ifPresent(_ -> {
