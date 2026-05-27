@@ -9,7 +9,7 @@ public record PostCommentDto(
         LocalDateTime createDate,
         LocalDateTime modifyDate,
         String content,
-        String author
+        String author // 작성자 이름 (요청 시의 actorId에 해당하는 회원의 이름)
 ) {
     public PostCommentDto(PostComment postComment) {
         this(
