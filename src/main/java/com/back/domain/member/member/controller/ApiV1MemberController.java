@@ -48,10 +48,11 @@ public class ApiV1MemberController {
         );
     }
 
-    @GetMapping("/me/{actorId}")
+    @GetMapping("/me")
     @Operation(summary = "회원 정보 조회")
     public MemberDto getProfile(
-            @PathVariable int actorId
+            @RequestParam int actorId
+
     ) {
         Member member = memberService.findById(actorId).get();
 

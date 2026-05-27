@@ -32,21 +32,23 @@ public class BaseInitData {
     public void work1() {
         if (postService.count() > 0) return;
 
-        Post post1 = postService.write("제목 1", "내용 1");
-        Post post2 = postService.write("제목 2", "내용 2");
-        Post post3 = postService.write("제목 3", "내용 3");
-
-        post1.addComment("댓글 1-1");
-        post1.addComment("댓글 1-2");
-        post1.addComment("댓글 1-3");
-        post2.addComment("댓글 2-1");
-        post2.addComment("댓글 2-2");
-
         Member system = memberService.join("system", "12345678", "시스템");
         Member admin = memberService.join("admin", "12345678", "관리자");
         Member user1 = memberService.join("user1", "12345678", "유저1");
         Member user2 = memberService.join("user2", "12345678", "유저2");
         Member user3 = memberService.join("user3", "12345678", "유저3");
         Member user4 = memberService.join("user4", "12345678", "유저4");
+
+        Post post1 = postService.write("제목 1", "내용 1", user1);
+        Post post2 = postService.write("제목 2", "내용 2", user2);
+        Post post3 = postService.write("제목 3", "내용 3", user3);
+
+        postService.writeComment(post1, "댓글 1-1", user1);
+        postService.writeComment(post1, "댓글 1-2", user2);
+        postService.writeComment(post1, "댓글 1-3", user3);
+        postService.writeComment(post2, "댓글 2-1", user1);
+        postService.writeComment(post2, "댓글 2-1", user2);
+
+
     }
 }

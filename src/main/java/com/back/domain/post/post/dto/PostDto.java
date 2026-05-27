@@ -1,5 +1,6 @@
 package com.back.domain.post.post.dto;
 
+import com.back.domain.member.member.entity.Member;
 import com.back.domain.post.post.entity.Post;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,8 @@ public record PostDto(
         LocalDateTime createDate,
         LocalDateTime modifyDate,
         String title,
-        String content
+        String content,
+        String author
 ) {
 
     public PostDto(Post post) {
@@ -18,7 +20,8 @@ public record PostDto(
                 post.getCreateDate(),
                 post.getModifyDate(),
                 post.getTitle(),
-                post.getContent()
+                post.getContent(),
+                post.getMember().getName()
         );
     }
 }
