@@ -27,7 +27,7 @@ public class ApiV1MemberController {
             @Size(min = 8, max = 30)
             String password,
             @NotBlank
-            @Size(min = 4, max = 30)
+            @Size(min = 2, max = 30)
             String name
     ) {
     }

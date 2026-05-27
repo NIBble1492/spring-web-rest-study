@@ -2,6 +2,8 @@ package com.back.domain.member.member.controller;
 
 import com.back.domain.member.member.entity.Member;
 import com.back.domain.member.member.service.MemberService;
+import com.back.domain.post.post.controller.ApiV1PostController;
+import com.back.domain.post.post.entity.Post;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,18 +36,66 @@ class ApiV1MemberControllerTest {
     @Test
     @DisplayName("회원가입")
     void t1() throws Exception {
-        // 회원가입 요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/members/join")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
-                                            "username": "user1",
-                                            "password": "1234",
-                                            "name": "user1"
+                                            "username": "user11",
+                                            "password": "12345678",
+                                            "name": "유저11"
                                         }
                                         """)
-                ).andDo(print()); // 응답결과를 출력합니다.
+                )
+                .andDo(print());
+
+        Member member = memberService.findLatest().get();
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("join"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.resultCode").value("201-1"))
+                .andExpect(jsonPath("$.msg").value("%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getName())));
+    }
+
+    @Test
+    @DisplayName("회원가입 with duplicate username")
+    void t2() throws Exception {
+        mvc
+                .perform(
+                        post("/api/v1/members/join")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "username": "user12",
+                                            "password": "12345678",
+                                            "name": "유저12"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/members/join")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "username": "user12",
+                                            "password": "12345678",
+                                            "name": "유저12"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("join"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.resultCode").value("409-1"))
+                .andExpect(jsonPath("$.msg").value("user12(은)는 이미 사용중인 username 입니다."));
     }
 }
