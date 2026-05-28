@@ -143,4 +143,23 @@ class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
 
     }
+
+    @Test
+    @DisplayName("회원 조회 시 존재하지 않는 회원 번호일 경우 401 반환")
+    void t5() throws Exception {
+
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/members/me?actorId=999999")
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("getProfile"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+
+    }
 }

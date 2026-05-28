@@ -52,9 +52,14 @@ public class ApiV1MemberController {
     @GetMapping("/me")
     @Operation(summary = "회원 조회")
     public MemberDto getProfile(
-            @RequestParam(defaultValue = "0") int actorId
-
+            @RequestParam(required  = false) Integer actorId
     ) {
+        // actorId 파라미터가 누락된 경우(null) 예외 처리
+        if (actorId == null) {
+            throw new UnauthenticatedException();
+        }
+
+        // 존재하지 않는 회원 번호(actorId)인 경우 예외 처리
         Member loginMember = memberService.findById(actorId).orElseThrow(
                 UnauthenticatedException::new
         );
