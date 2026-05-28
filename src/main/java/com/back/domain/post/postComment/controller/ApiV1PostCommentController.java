@@ -6,6 +6,7 @@ import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.dto.PostCommentDto;
 import com.back.domain.post.postComment.entity.PostComment;
+import com.back.global.globalExceptionHandler.AccessDeniedException;
 import com.back.global.globalExceptionHandler.UnauthenticatedException;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,26 +64,6 @@ public class ApiV1PostCommentController {
     ) {
     }
 
-    @PutMapping("/{id}")
-    @Transactional
-    @Operation(summary = "수정")
-    public RsData<Void> modify(
-            @PathVariable int postId,
-            @PathVariable int id,
-            @Valid @RequestBody PostCommentModifyBody reqBody
-    ) {
-        Post post = postService.findById(postId).get();
-
-        PostComment postComment = post.findCommentById(id).get();
-
-        postService.modifyComment(postComment, reqBody.content);
-
-        return new RsData<>(
-                "200-1",
-                "%d번 댓글이 수정되었습니다.".formatted(id)
-        );
-    }
-
     record PostCommentWriteReqBody(
             @NotBlank
             @Size(min = 2, max = 100)
@@ -122,16 +103,53 @@ public class ApiV1PostCommentController {
     @Operation(summary = "삭제")
     public RsData<Void> delete(
             @PathVariable int postId,
-            @PathVariable int id
+            @PathVariable int id,
+            @RequestParam(required = false) Integer actorId
     ) {
+        if (actorId == null) {
+            throw new UnauthenticatedException();
+        }
+
         Post post = postService.findById(postId).get();
         PostComment postComment = post.findCommentById(id).get();
+
+        if (!actorId.equals(postComment.getMember().getId())) {
+            throw new AccessDeniedException();
+        }
 
         postService.deleteComment(post, postComment);
 
         return new RsData<>(
                 "200-1",
                 "%d번 댓글이 삭제되었습니다.".formatted(id)
+        );
+    }
+
+    @PutMapping("/{id}")
+    @Transactional
+    @Operation(summary = "수정")
+    public RsData<Void> modify(
+            @PathVariable int postId,
+            @PathVariable int id,
+            @Valid @RequestBody PostCommentModifyBody reqBody,
+            @RequestParam(required = false) Integer actorId
+    ) {
+        if (actorId == null) {
+            throw new UnauthenticatedException();
+        }
+
+        Post post = postService.findById(postId).get();
+        PostComment postComment = post.findCommentById(id).get();
+
+        if (!actorId.equals(postComment.getMember().getId())) {
+            throw new AccessDeniedException();
+        }
+
+        postService.modifyComment(postComment, reqBody.content);
+
+        return new RsData<>(
+                "200-1",
+                "%d번 댓글이 수정되었습니다.".formatted(id)
         );
     }
 }

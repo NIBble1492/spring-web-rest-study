@@ -92,17 +92,18 @@ class ApiV1PostCommentControllerTest {
     }
 
     @Test
-    @DisplayName("댓글 삭제")
+    @DisplayName("댓글 삭제 - 본인 댓글 삭제 성공")
     void t3() throws Exception {
         int postId = 2;
         int id = 4;
-
+        Post post = postService.findById(postId).get();
+        PostComment postComment = post.findCommentById(id).get();
+        int authorId = postComment.getMember().getId(); // 댓글 작성자 ID 조회
         ResultActions resultActions = mvc
                 .perform(
-                        delete("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                        delete("/api/v1/posts/%d/comments/%d?actorId=%d".formatted(postId, id, authorId))
                 )
                 .andDo(print());
-
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostCommentController.class))
                 .andExpect(handler().methodName("delete"))
@@ -117,10 +118,14 @@ class ApiV1PostCommentControllerTest {
         int postId = 2;
         int id = 4;
 
+        Post post = postService.findById(postId).get();
+        PostComment postComment = post.findCommentById(id).get();
+        int authorId = postComment.getMember().getId();
+
         // 댓글 수정 요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
-                        put("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                        put("/api/v1/posts/%d/comments/%d?actorId=%d".formatted(postId, id, authorId))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -135,9 +140,6 @@ class ApiV1PostCommentControllerTest {
                 .andExpect(status().isOk()) // 200 Ok 상태코드 검증
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 댓글이 수정되었습니다.".formatted(id)));
-
-        Post post = postService.findById(postId).get();
-        PostComment postComment = post.findCommentById(id).get();
 
         assertThat(postComment.getContent()).isEqualTo("내용 new");
     }
@@ -212,6 +214,88 @@ class ApiV1PostCommentControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 - actorId 누락 시 401 반환")
+    void t8() throws Exception {
+        int postId = 2;
+        int id = 4;
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/%d/comments/%d".formatted(postId, id)) // actorId 없음
+                )
+                .andDo(print());
+        resultActions
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+    @Test
+    @DisplayName("댓글 삭제 - 타인의 댓글 삭제 시도 시 403 반환")
+    void t9() throws Exception {
+        int postId = 2;
+        int id = 4;
+        Post post = postService.findById(postId).get();
+        PostComment postComment = post.findCommentById(id).get();
+        int authorId = postComment.getMember().getId();
+        int notAuthorId = authorId == 3 ? 4 : 3; // 작성자가 아닌 다른 회원 ID
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/%d/comments/%d?actorId=%d".formatted(postId, id, notAuthorId))
+                )
+                .andDo(print());
+        resultActions
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+    }
+
+    @Test
+    @DisplayName("댓글 수정 - actorId 누락 시 401 반환")
+    void t10() throws Exception {
+        int postId = 2;
+        int id = 4;
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/%d/comments/%d".formatted(postId, id)) // actorId 없음
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+        resultActions
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+    @Test
+    @DisplayName("댓글 수정 - 타인의 댓글 수정 시도 시 403 반환")
+    void t11() throws Exception {
+        int postId = 2;
+        int id = 4;
+        Post post = postService.findById(postId).get();
+        PostComment postComment = post.findCommentById(id).get();
+        int authorId = postComment.getMember().getId();
+        int notAuthorId = authorId == 3 ? 4 : 3; // 작성자가 아닌 다른 회원 ID
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/%d/comments/%d?actorId=%d".formatted(postId, id, notAuthorId))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+        resultActions
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
     }
 
 }
