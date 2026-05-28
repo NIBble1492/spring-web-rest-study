@@ -149,7 +149,7 @@ class ApiV1PostCommentControllerTest {
 
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts/%d/comments?actorId=1".formatted(postId))
+                        post("/api/v1/posts/%d/comments?actorId=3".formatted(postId))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -172,7 +172,45 @@ class ApiV1PostCommentControllerTest {
                 .andExpect(jsonPath("$.data.id").value(postComment.getId()))
                 .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(postComment.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(postComment.getModifyDate().toString().substring(0, 20))))
-                .andExpect(jsonPath("$.data.content").value("내용"));
+                .andExpect(jsonPath("$.data.content").value("내용"))
+                .andExpect(jsonPath("$.data.author").value("유저1"));
+    }
+
+    @Test
+    @DisplayName("댓글 작성 시 actorId 파라미터가 누락된 경우 401 반환")
+    void t6() throws Exception {
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts/1/comments") // actorId 생략
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                        "content": "내용"
+                                    }
+                                    """)
+                ).andDo(print());
+        resultActions
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+    @Test
+    @DisplayName("댓글 작성 시 존재하지 않는 actorId일 경우 401 반환")
+    void t7() throws Exception {
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts/1/comments?actorId=999999") // 잘못된 actorId
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                        "content": "내용"
+                                    }
+                                    """)
+                ).andDo(print());
+        resultActions
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
     }
 
 }

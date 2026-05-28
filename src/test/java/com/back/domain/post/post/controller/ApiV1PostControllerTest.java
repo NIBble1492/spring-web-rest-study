@@ -36,7 +36,7 @@ public class ApiV1PostControllerTest {
         // 글 작성 요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts?actorId=1")
+                        post("/api/v1/posts?actorId=3")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -59,7 +59,8 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.title").value("제목"))
-                .andExpect(jsonPath("$.data.content").value("내용"));
+                .andExpect(jsonPath("$.data.content").value("내용"))
+                .andExpect(jsonPath("$.data.author").value("유저1"));
     }
 
     @Test
@@ -261,6 +262,48 @@ public class ApiV1PostControllerTest {
                     .andExpect(jsonPath("$[%d].title".formatted(i)).value(post.getTitle()))
                     .andExpect(jsonPath("$[%d].content".formatted(i)).value(post.getContent()));
         }
+    }
+
+    @Test
+    @DisplayName("글 작성 시 actorId 파라미터가 누락된 경우 401 반환")
+    void t10() throws Exception {
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts") // actorId 생략
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                        "title": "제목",
+                                        "content": "내용"
+                                    }
+                                    """)
+                ).andDo(print());
+
+        resultActions
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+
+    @Test
+    @DisplayName("글 작성 시 존재하지 않는 actorId일 경우 401 반환")
+    void t11() throws Exception {
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts?actorId=999999") // 잘못된 actorId
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                        "title": "제목",
+                                        "content": "내용"
+                                    }
+                                    """)
+                ).andDo(print());
+
+        resultActions
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
     }
 
 }
