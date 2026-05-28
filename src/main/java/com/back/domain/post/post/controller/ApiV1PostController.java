@@ -5,6 +5,7 @@ import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
+import com.back.global.globalExceptionHandler.AccessDeniedException;
 import com.back.global.globalExceptionHandler.UnauthenticatedException;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -83,8 +84,19 @@ public class ApiV1PostController {
     @DeleteMapping("/{id}")
     @Transactional
     @Operation(summary = "삭제")
-    public RsData<Void> delete(@PathVariable int id) {
+    public RsData<Void> delete(
+            @PathVariable int id,
+            @RequestParam(required = false) Integer actorId
+    ) {
+        if (actorId == null) {
+            throw new UnauthenticatedException();
+        }
+
         Post post = postService.findById(id).get();
+
+        if (!actorId.equals(post.getMember().getId())) {
+            throw new AccessDeniedException();
+        }
 
         postService.delete(post);
 
@@ -109,9 +121,19 @@ public class ApiV1PostController {
     @Operation(summary = "수정")
     public RsData<Void> modify(
             @PathVariable int id,
-            @Valid @RequestBody PostModifyReqBody reqBody
+            @Valid @RequestBody PostModifyReqBody reqBody,
+            @RequestParam(required = false) Integer actorId
     ) {
+        if (actorId == null) {
+            throw new UnauthenticatedException();
+        }
+
         Post post = postService.findById(id).get();
+
+        if (!actorId.equals(post.getMember().getId())) {
+            throw new AccessDeniedException();
+        }
+
         postService.modify(post, reqBody.title, reqBody.content);
 
         return new RsData<>(

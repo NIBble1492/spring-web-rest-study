@@ -148,10 +148,13 @@ public class ApiV1PostControllerTest {
     void t2() throws Exception {
         int id = 1;
 
+        Post post = postService.findById(id).get();
+        int authorId = post.getMember().getId();
+
         // 글 수정 요청을 보냅니다.
         ResultActions resultActions = mvc
                 .perform(
-                        put("/api/v1/posts/" + id)
+                        put("/api/v1/posts/" + id + "?actorId=" + authorId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -175,16 +178,16 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("글 삭제")
+    @DisplayName("글 삭제 - 본인 글 삭제 성공")
     void t3() throws Exception {
         int id = 1;
-
+        Post post = postService.findById(id).get();
+        int authorId = post.getMember().getId(); // 1번 글의 작성자 ID 조회
         ResultActions resultActions = mvc
                 .perform(
-                        delete("/api/v1/posts/" + id)
+                        delete("/api/v1/posts/" + id + "?actorId=" + authorId)
                 )
                 .andDo(print());
-
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostController.class))
                 .andExpect(handler().methodName("delete"))
@@ -304,6 +307,84 @@ public class ApiV1PostControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+
+    @Test
+    @DisplayName("글 삭제 - actorId 누락 시 401 반환")
+    void t12() throws Exception {
+        int id = 1;
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/" + id) // actorId 없음
+                )
+                .andDo(print());
+        resultActions
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+    @Test
+    @DisplayName("글 삭제 - 타인의 글 삭제 시도 시 403 반환")
+    void t13() throws Exception {
+        int id = 1;
+        Post post = postService.findById(id).get();
+        int authorId = post.getMember().getId();
+        int notAuthorId = authorId == 3 ? 4 : 3; // 작성자가 아닌 다른 회원 ID
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/" + id + "?actorId=" + notAuthorId)
+                )
+                .andDo(print());
+        resultActions
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+    }
+
+    @Test
+    @DisplayName("글 수정 - actorId 누락 시 401 반환")
+    void t14() throws Exception {
+        int id = 1;
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/" + id) // actorId 없음
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목 new",
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+        resultActions
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+    @Test
+    @DisplayName("글 수정 - 타인의 글 수정 시도 시 403 반환")
+    void t15() throws Exception {
+        int id = 1;
+        Post post = postService.findById(id).get();
+        int authorId = post.getMember().getId();
+        int notAuthorId = authorId == 3 ? 4 : 3; // 작성자가 아닌 다른 회원 ID
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/" + id + "?actorId=" + notAuthorId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목 new",
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+        resultActions
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
     }
 
 }
